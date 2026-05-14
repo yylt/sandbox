@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package sandbox.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+// weak, otherwise gnostic imports broken imports for gen-go
+// weak import: proto definition only adds options, no additional messages.
+// buf:lint:ignore IMPORT_NO_WEAK
+import weak "gnostic/openapi/v3/annotations.proto"; // Will not import _ "" in the gen-go files
+
+// Defines the import path that should be used to import the generated package,
+// and the package name.
+option go_package = "github.com/yylt/agentsandbox/internal/pkg/pb;pb";
+// These annotations are used when generating the OpenAPI file.
+option (gnostic.openapi.v3.document) = {
+  info: {
+    title: "sandbox-api";
+    version: "1.0";
+    description: "管理 Agent Sandbox Pod，提供控制面 API，操作 K8s 资源";
+  }
+  components: {
+    security_schemes: {
+      additional_properties: [
+        {
+          name: "BasicAuth";
+          value: {
+            security_scheme: {
+              type: "http";
+              scheme: "basic";
+            }
+          }
+        }
+      ]
+    }
+  }
+  servers : {
+    url: "http://localhost:8080";
+    description: "Host Server"
+  }
+};
+
+service SandboxService {
+  rpc GetExample(GetExampleRequest) returns (GetExampleResponse) {
+    option (google.api.http) = {
+      get: "/v1/example"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      summary: "Get example response"
+      description: "Returns an empty example response"
+      tags: "example"
+    };
+  }
+  
+}
+
+message GetExampleRequest {}
+
+message GetExampleResponse {}

@@ -2,14 +2,14 @@
 
 ## Repo Shape
 - Go module: `github.com/yylt/agentsandbox`.
-- Main binary entrypoint is `cmd/sandbox/main.go`.
+- Main controller binary entrypoint is `cmd/controller/main.go`.
 - Current handwritten code is concentrated in `internal/log`.
 - Protobuf source lives in `api/proto`; generated Go code is written under `internal/pkg/api/pb`, and OpenAPI output goes to `api/openapi`.
 
 ## Commands
 - Use `make help` to discover repo targets.
 - Initial repo setup is `make all`; it sets `core.hooksPath` to `.githooks/`, installs codegen tools into `bin/`, runs protobuf generation, and runs `go mod tidy`.
-- Run the app with `make run` or `go run ./cmd/sandbox/main.go`.
+- Run the controller with `make run` or `go run ./cmd/controller/main.go`.
 - Main verification commands:
 - `make lint` runs `fmt`, `go mod download`, then `golangci-lint`.
 - `make protolint` lints protobufs.

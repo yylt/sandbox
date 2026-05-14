@@ -4,9 +4,7 @@ package sandbox.v1;
 
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
-import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 // weak, otherwise gnostic imports broken imports for gen-go
 // weak import: proto definition only adds options, no additional messages.
@@ -15,7 +13,7 @@ import weak "gnostic/openapi/v3/annotations.proto"; // Will not import _ "" in t
 
 // Defines the import path that should be used to import the generated package,
 // and the package name.
-option go_package = "github.com/yylt/agentsandbox/internal/pkg/pb;pb";
+option go_package = "github.com/yylt/agentsandbox/internal/pkg/api/pb;sandboxpb";
 // These annotations are used when generating the OpenAPI file.
 option (gnostic.openapi.v3.document) = {
   info: {
@@ -45,19 +43,211 @@ option (gnostic.openapi.v3.document) = {
 };
 
 service SandboxService {
-  rpc GetExample(GetExampleRequest) returns (GetExampleResponse) {
+  rpc CreateResource(CreateResourceRequest) returns (ResourceResponse) {
     option (google.api.http) = {
-      get: "/v1/example"
+      post: "/v1/resources"
+      body: "*"
     };
     option (gnostic.openapi.v3.operation) = {
-      summary: "Get example response"
-      description: "Returns an empty example response"
-      tags: "example"
+      summary: "Create sandbox resource"
+      description: "Create Sandbox or extension resource"
+      tags: "resource"
     };
   }
-  
+
+  rpc GetResource(GetResourceRequest) returns (ResourceResponse) {
+    option (google.api.http) = {
+      get: "/v1/resources/{kind}/{namespace}/{name}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      summary: "Get sandbox resource"
+      description: "Get Sandbox or extension resource by kind, namespace and name"
+      tags: "resource"
+    };
+  }
+
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
+    option (google.api.http) = {
+      get: "/v1/resources/{kind}/{namespace}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      summary: "List sandbox resources"
+      description: "List Sandbox or extension resources in a namespace"
+      tags: "resource"
+    };
+  }
+
+  rpc UpdateResource(UpdateResourceRequest) returns (ResourceResponse) {
+    option (google.api.http) = {
+      put: "/v1/resources"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      summary: "Update sandbox resource"
+      description: "Update Sandbox or extension resource"
+      tags: "resource"
+    };
+  }
+
+  rpc DeleteResource(DeleteResourceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/resources/{kind}/{namespace}/{name}"
+    };
+    option (gnostic.openapi.v3.operation) = {
+      summary: "Delete sandbox resource"
+      description: "Delete Sandbox or extension resource"
+      tags: "resource"
+    };
+  }
 }
 
-message GetExampleRequest {}
+enum ResourceKind {
+  RESOURCE_KIND_UNSPECIFIED = 0;
+  RESOURCE_KIND_SANDBOX = 1;
+  RESOURCE_KIND_TEMPLATE = 2;
+  RESOURCE_KIND_CLAIM = 3;
+  RESOURCE_KIND_WARM_POOL = 4;
+}
 
-message GetExampleResponse {}
+enum ShutdownPolicy {
+  SHUTDOWN_POLICY_UNSPECIFIED = 0;
+  SHUTDOWN_POLICY_RETAIN = 1;
+  SHUTDOWN_POLICY_DELETE = 2;
+  SHUTDOWN_POLICY_DELETE_FOREGROUND = 3;
+}
+
+enum NetworkPolicyManagement {
+  NETWORK_POLICY_MANAGEMENT_UNSPECIFIED = 0;
+  NETWORK_POLICY_MANAGEMENT_MANAGED = 1;
+  NETWORK_POLICY_MANAGEMENT_UNMANAGED = 2;
+}
+
+enum EnvVarsInjectionPolicy {
+  ENV_VARS_INJECTION_POLICY_UNSPECIFIED = 0;
+  ENV_VARS_INJECTION_POLICY_ALLOWED = 1;
+  ENV_VARS_INJECTION_POLICY_OVERRIDES = 2;
+  ENV_VARS_INJECTION_POLICY_DISALLOWED = 3;
+}
+
+enum WarmPoolUpdateStrategy {
+  WARM_POOL_UPDATE_STRATEGY_UNSPECIFIED = 0;
+  WARM_POOL_UPDATE_STRATEGY_ON_REPLENISH = 1;
+  WARM_POOL_UPDATE_STRATEGY_RECREATE = 2;
+}
+
+message Metadata {
+  string name = 1 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  string namespace = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  map<string, string> labels = 3;
+  map<string, string> annotations = 4;
+}
+
+message EnvVar {
+  string name = 1 [(validate.rules).string.min_len = 1];
+  string value = 2;
+  string container_name = 3;
+}
+
+message ContainerPort {
+  string name = 1;
+  int32 container_port = 2 [(validate.rules).int32 = {gte: 1, lte: 65535}];
+  string protocol = 3;
+}
+
+message Container {
+  string name = 1 [(validate.rules).string.min_len = 1];
+  string image = 2 [(validate.rules).string.min_len = 1];
+  repeated string command = 3;
+  repeated string args = 4;
+  repeated EnvVar env = 5;
+  repeated ContainerPort ports = 6;
+}
+
+message PodTemplate {
+  map<string, string> labels = 1;
+  map<string, string> annotations = 2;
+  repeated Container containers = 3 [(validate.rules).repeated.min_items = 1];
+  string service_account_name = 4;
+  string runtime_class_name = 5;
+}
+
+message SandboxResource {
+  Metadata metadata = 1 [(google.api.field_behavior) = REQUIRED];
+  PodTemplate pod_template = 2 [(google.api.field_behavior) = REQUIRED];
+  int32 replicas = 3 [(validate.rules).int32 = {gte: 0, lte: 1}];
+  string shutdown_time = 4;
+  ShutdownPolicy shutdown_policy = 5;
+  string service = 6;
+  string service_fqdn = 7;
+  repeated string pod_ips = 8;
+}
+
+message SandboxTemplateResource {
+  Metadata metadata = 1 [(google.api.field_behavior) = REQUIRED];
+  PodTemplate pod_template = 2 [(google.api.field_behavior) = REQUIRED];
+  NetworkPolicyManagement network_policy_management = 3;
+  EnvVarsInjectionPolicy env_vars_injection_policy = 4;
+}
+
+message SandboxClaimResource {
+  Metadata metadata = 1 [(google.api.field_behavior) = REQUIRED];
+  string template_name = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  string warm_pool_name = 3;
+  repeated EnvVar env = 4;
+  string shutdown_time = 5;
+  int32 ttl_seconds_after_finished = 6 [(validate.rules).int32.gte = 0];
+  ShutdownPolicy shutdown_policy = 7;
+  string sandbox_name = 8;
+  repeated string pod_ips = 9;
+}
+
+message SandboxWarmPoolResource {
+  Metadata metadata = 1 [(google.api.field_behavior) = REQUIRED];
+  string template_name = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  int32 replicas = 3 [(validate.rules).int32.gte = 0];
+  WarmPoolUpdateStrategy update_strategy = 4;
+  int32 ready_replicas = 5;
+}
+
+message ManagedResource {
+  ResourceKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  oneof resource {
+    SandboxResource sandbox = 2;
+    SandboxTemplateResource template = 3;
+    SandboxClaimResource claim = 4;
+    SandboxWarmPoolResource warm_pool = 5;
+  }
+}
+
+message CreateResourceRequest {
+  ManagedResource resource = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetResourceRequest {
+  ResourceKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string namespace = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  string name = 3 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+}
+
+message ListResourcesRequest {
+  ResourceKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string namespace = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+}
+
+message UpdateResourceRequest {
+  ManagedResource resource = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteResourceRequest {
+  ResourceKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string namespace = 2 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+  string name = 3 [(google.api.field_behavior) = REQUIRED, (validate.rules).string.min_len = 1];
+}
+
+message ResourceResponse {
+  ManagedResource resource = 1;
+}
+
+message ListResourcesResponse {
+  repeated ManagedResource resources = 1;
+}

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-sandbox-runtime
+  namespace: agent-sandbox-system
+data:
+  config.yaml: |
+    metrics-addr: ":8080"
+    default-sandbox-template: default
+    default-sandbox-warmpool: ""
+    managed-label-key: sandbox.io/managed
+    managed-label-value: sandboxs

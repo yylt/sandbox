@@ -28,3 +28,19 @@ Run tests
 ```bash
 make test
 ```
+
+## Run
+
+Controller:
+
+```bash
+go run ./cmd/controller/main.go --configmap=agent-sandbox-runtime
+```
+
+Agent:
+
+```bash
+go run ./cmd/agent/main.go
+```
+
+The agent serves a minimal REST API on `:8080` by default and exposes its OpenAPI file at `/swagger/openapi.yaml`.

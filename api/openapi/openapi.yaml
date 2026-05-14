@@ -1,0 +1,414 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: sandbox-api
+    description: 管理 Agent Sandbox Pod，提供控制面 API，操作 K8s 资源
+    version: "1.0"
+servers:
+    - url: http://localhost:8080
+      description: Host Server
+paths:
+    /v1/resources:
+        put:
+            tags:
+                - SandboxService
+                - resource
+            summary: Update sandbox resource
+            description: Update Sandbox or extension resource
+            operationId: SandboxService_UpdateResource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateResourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - SandboxService
+                - resource
+            summary: Create sandbox resource
+            description: Create Sandbox or extension resource
+            operationId: SandboxService_CreateResource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateResourceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/resources/{kind}/{namespace}:
+        get:
+            tags:
+                - SandboxService
+                - resource
+            summary: List sandbox resources
+            description: List Sandbox or extension resources in a namespace
+            operationId: SandboxService_ListResources
+            parameters:
+                - name: kind
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+                - name: namespace
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListResourcesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/resources/{kind}/{namespace}/{name}:
+        get:
+            tags:
+                - SandboxService
+                - resource
+            summary: Get sandbox resource
+            description: Get Sandbox or extension resource by kind, namespace and name
+            operationId: SandboxService_GetResource
+            parameters:
+                - name: kind
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+                - name: namespace
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ResourceResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - SandboxService
+                - resource
+            summary: Delete sandbox resource
+            description: Delete Sandbox or extension resource
+            operationId: SandboxService_DeleteResource
+            parameters:
+                - name: kind
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: enum
+                - name: namespace
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        Container:
+            type: object
+            properties:
+                name:
+                    type: string
+                image:
+                    type: string
+                command:
+                    type: array
+                    items:
+                        type: string
+                args:
+                    type: array
+                    items:
+                        type: string
+                env:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EnvVar'
+                ports:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ContainerPort'
+        ContainerPort:
+            type: object
+            properties:
+                name:
+                    type: string
+                containerPort:
+                    type: integer
+                    format: int32
+                protocol:
+                    type: string
+        CreateResourceRequest:
+            required:
+                - resource
+            type: object
+            properties:
+                resource:
+                    $ref: '#/components/schemas/ManagedResource'
+        EnvVar:
+            type: object
+            properties:
+                name:
+                    type: string
+                value:
+                    type: string
+                containerName:
+                    type: string
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListResourcesResponse:
+            type: object
+            properties:
+                resources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ManagedResource'
+        ManagedResource:
+            required:
+                - kind
+            type: object
+            properties:
+                kind:
+                    type: integer
+                    format: enum
+                sandbox:
+                    $ref: '#/components/schemas/SandboxResource'
+                template:
+                    $ref: '#/components/schemas/SandboxTemplateResource'
+                claim:
+                    $ref: '#/components/schemas/SandboxClaimResource'
+                warmPool:
+                    $ref: '#/components/schemas/SandboxWarmPoolResource'
+        Metadata:
+            required:
+                - name
+                - namespace
+            type: object
+            properties:
+                name:
+                    type: string
+                namespace:
+                    type: string
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+        PodTemplate:
+            type: object
+            properties:
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                annotations:
+                    type: object
+                    additionalProperties:
+                        type: string
+                containers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Container'
+                serviceAccountName:
+                    type: string
+                runtimeClassName:
+                    type: string
+        ResourceResponse:
+            type: object
+            properties:
+                resource:
+                    $ref: '#/components/schemas/ManagedResource'
+        SandboxClaimResource:
+            required:
+                - metadata
+                - templateName
+            type: object
+            properties:
+                metadata:
+                    $ref: '#/components/schemas/Metadata'
+                templateName:
+                    type: string
+                warmPoolName:
+                    type: string
+                env:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/EnvVar'
+                shutdownTime:
+                    type: string
+                ttlSecondsAfterFinished:
+                    type: integer
+                    format: int32
+                shutdownPolicy:
+                    type: integer
+                    format: enum
+                sandboxName:
+                    type: string
+                podIps:
+                    type: array
+                    items:
+                        type: string
+        SandboxResource:
+            required:
+                - metadata
+                - podTemplate
+            type: object
+            properties:
+                metadata:
+                    $ref: '#/components/schemas/Metadata'
+                podTemplate:
+                    $ref: '#/components/schemas/PodTemplate'
+                replicas:
+                    type: integer
+                    format: int32
+                shutdownTime:
+                    type: string
+                shutdownPolicy:
+                    type: integer
+                    format: enum
+                service:
+                    type: string
+                serviceFqdn:
+                    type: string
+                podIps:
+                    type: array
+                    items:
+                        type: string
+        SandboxTemplateResource:
+            required:
+                - metadata
+                - podTemplate
+            type: object
+            properties:
+                metadata:
+                    $ref: '#/components/schemas/Metadata'
+                podTemplate:
+                    $ref: '#/components/schemas/PodTemplate'
+                networkPolicyManagement:
+                    type: integer
+                    format: enum
+                envVarsInjectionPolicy:
+                    type: integer
+                    format: enum
+        SandboxWarmPoolResource:
+            required:
+                - metadata
+                - templateName
+            type: object
+            properties:
+                metadata:
+                    $ref: '#/components/schemas/Metadata'
+                templateName:
+                    type: string
+                replicas:
+                    type: integer
+                    format: int32
+                updateStrategy:
+                    type: integer
+                    format: enum
+                readyReplicas:
+                    type: integer
+                    format: int32
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        UpdateResourceRequest:
+            required:
+                - resource
+            type: object
+            properties:
+                resource:
+                    $ref: '#/components/schemas/ManagedResource'
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+tags:
+    - name: SandboxService

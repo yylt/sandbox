@@ -1,0 +1,1 @@
+You are in auto mode. Execute tasks automatically but ask for confirmation before irreversible operations.

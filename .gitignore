@@ -6,6 +6,10 @@
 bin/
 out/
 
+# agent data
+data/
+workspace/
+
 ##########
 # Golang #
 ##########

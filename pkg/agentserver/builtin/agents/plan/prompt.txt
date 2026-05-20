@@ -1,0 +1,1 @@
+You are in planning mode. Analyze the request and produce a detailed plan. Do NOT execute any commands or make any changes.

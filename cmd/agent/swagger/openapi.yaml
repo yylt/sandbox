@@ -5,9 +5,23 @@ info:
   description: RESTful API exposed by the sandbox agent sidecar process.
 servers:
   - url: http://localhost:8080
+tags:
+  - name: health
+    description: Health and readiness probes
+  - name: projects
+    description: Project management
+  - name: sessions
+    description: Session management
+  - name: files
+    description: File browser
+  - name: git
+    description: Git change management
+  - name: terminals
+    description: Terminal management
 paths:
   /healthz:
     get:
+      tags: [health]
       summary: Liveness probe
       operationId: getHealthz
       responses:
@@ -19,6 +33,7 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
   /readyz:
     get:
+      tags: [health]
       summary: Readiness probe
       operationId: getReadyz
       responses:
@@ -30,6 +45,7 @@ paths:
                 $ref: '#/components/schemas/HealthResponse'
   /api/v1/ping:
     get:
+      tags: [health]
       summary: Ping endpoint
       operationId: getPing
       responses:
@@ -39,21 +55,955 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PingResponse'
+
+  # ── Projects ──────────────────────────────────────────────────────────────
+  /api/v1/projects:
+    get:
+      tags: [projects]
+      summary: List projects
+      operationId: listProjects
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [projects]
+      summary: Create project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+    get:
+      tags: [projects]
+      summary: Get project
+      operationId: getProject
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [projects]
+      summary: Update project
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [projects]
+      summary: Delete project
+      operationId: deleteProject
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
+  # ── Sessions ──────────────────────────────────────────────────────────────
+  /api/v1/projects/{projectId}/sessions:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+    get:
+      tags: [sessions]
+      summary: List sessions
+      operationId: listSessions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [sessions]
+      summary: Create session
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/projects/{projectId}/sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/sessionId'
+    get:
+      tags: [sessions]
+      summary: Get session
+      operationId: getSession
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [sessions]
+      summary: Update session
+      operationId: updateSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [sessions]
+      summary: Delete session
+      operationId: deleteSession
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
+  # ── File Browser ──────────────────────────────────────────────────────────
+  /api/v1/files:
+    get:
+      tags: [files]
+      summary: List directory entries
+      operationId: listFiles
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            example: /workspace/myproject
+          description: Absolute path of directory to list
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [files]
+      summary: Create file or directory
+      operationId: createFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileEntry'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [files]
+      summary: Delete file or directory
+      operationId: deleteFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Absolute path of file or directory to delete
+        - name: recursive
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Delete directory recursively
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/files/content:
+    get:
+      tags: [files]
+      summary: Read file content
+      operationId: readFileContent
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Absolute path of file to read
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileContentResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      tags: [files]
+      summary: Write file content
+      operationId: writeFileContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileContentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileEntry'
+        default:
+          $ref: '#/components/responses/Error'
+
+  # ── Git ───────────────────────────────────────────────────────────────────
+  /api/v1/git/status:
+    get:
+      tags: [git]
+      summary: Get repository status
+      operationId: getGitStatus
+      parameters:
+        - name: repoPath
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Absolute path of the git repository root
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitStatusResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/git/branches:
+    get:
+      tags: [git]
+      summary: List branches
+      operationId: listGitBranches
+      parameters:
+        - name: repoPath
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitBranchListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/git/diff:
+    get:
+      tags: [git]
+      summary: Get file diff
+      operationId: getGitDiff
+      parameters:
+        - name: repoPath
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: filePath
+          in: query
+          schema:
+            type: string
+          description: Relative file path within repo; omit for full diff
+        - name: staged
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Show staged (cached) diff
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitDiffResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/git/commit:
+    post:
+      tags: [git]
+      summary: Commit changes
+      operationId: gitCommit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GitCommitRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitCommitResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/git/checkout:
+    post:
+      tags: [git]
+      summary: Checkout branch
+      operationId: gitCheckout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GitCheckoutRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GitStatusResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  # ── Terminals ─────────────────────────────────────────────────────────────
+  /api/v1/terminals:
+    get:
+      tags: [terminals]
+      summary: List terminals
+      operationId: listTerminals
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalListResponse'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [terminals]
+      summary: Create terminal
+      operationId: createTerminal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/terminals/{terminalId}:
+    parameters:
+      - $ref: '#/components/parameters/terminalId'
+    get:
+      tags: [terminals]
+      summary: Get terminal info
+      operationId: getTerminal
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [terminals]
+      summary: Close terminal
+      operationId: deleteTerminal
+      responses:
+        '204':
+          description: Closed
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/terminals/{terminalId}/resize:
+    parameters:
+      - $ref: '#/components/parameters/terminalId'
+    post:
+      tags: [terminals]
+      summary: Resize terminal
+      operationId: resizeTerminal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminalResizeRequest'
+      responses:
+        '204':
+          description: Resized
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /api/v1/terminals/{terminalId}/ws:
+    parameters:
+      - $ref: '#/components/parameters/terminalId'
+    get:
+      tags: [terminals]
+      summary: Connect to terminal via WebSocket
+      operationId: connectTerminalWs
+      description: >
+        Upgrade to WebSocket. Each message is a JSON frame:
+        `{"type":"input","data":"<base64>"}` or
+        `{"type":"output","data":"<base64>"}`.
+      responses:
+        '101':
+          description: Switching Protocols (WebSocket upgrade)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Error'
+
 components:
+  parameters:
+    projectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Project identifier
+    sessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Session identifier
+    terminalId:
+      name: terminalId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Terminal identifier
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
   schemas:
+    # ── Common ───────────────────────────────────────────────────────────────
     HealthResponse:
       type: object
-      required:
-        - status
+      required: [status]
       properties:
         status:
           type: string
           example: ok
+
     PingResponse:
       type: object
-      required:
-        - message
+      required: [message]
       properties:
         message:
           type: string
           example: pong
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: resource not found
+
+    # ── Projects ──────────────────────────────────────────────────────────────
+    ProjectRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: my-project
+        description:
+          type: string
+        rootPath:
+          type: string
+          description: Absolute workspace path on the agent host
+          example: /workspace/my-project
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+
+    ProjectResponse:
+      type: object
+      required: [id, name, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        rootPath:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectResponse'
+        total:
+          type: integer
+
+    # ── Sessions ──────────────────────────────────────────────────────────────
+    SessionRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+
+    SessionResponse:
+      type: object
+      required: [id, projectId, name, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, idle, terminated]
+          example: active
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SessionListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionResponse'
+        total:
+          type: integer
+
+    # ── Files ─────────────────────────────────────────────────────────────────
+    FileEntry:
+      type: object
+      required: [name, path, type]
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+          enum: [file, directory, symlink]
+        size:
+          type: integer
+          format: int64
+          description: File size in bytes (0 for directories)
+        modifiedAt:
+          type: string
+          format: date-time
+        permissions:
+          type: string
+          example: "0644"
+
+    FileListResponse:
+      type: object
+      required: [path, entries]
+      properties:
+        path:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileEntry'
+
+    FileCreateRequest:
+      type: object
+      required: [path, type]
+      properties:
+        path:
+          type: string
+          description: Absolute path of the new file or directory
+        type:
+          type: string
+          enum: [file, directory]
+        content:
+          type: string
+          description: Initial content (base64-encoded) for file type
+        permissions:
+          type: string
+          example: "0644"
+
+    FileContentRequest:
+      type: object
+      required: [path, content]
+      properties:
+        path:
+          type: string
+          description: Absolute path of the file to write
+        content:
+          type: string
+          description: File content (base64-encoded)
+        encoding:
+          type: string
+          enum: [base64, utf8]
+          default: utf8
+
+    FileContentResponse:
+      type: object
+      required: [path, content, encoding]
+      properties:
+        path:
+          type: string
+        content:
+          type: string
+        encoding:
+          type: string
+          enum: [base64, utf8]
+        size:
+          type: integer
+          format: int64
+
+    # ── Git ───────────────────────────────────────────────────────────────────
+    GitFileStatus:
+      type: object
+      required: [path, status]
+      properties:
+        path:
+          type: string
+        status:
+          type: string
+          enum: [modified, added, deleted, renamed, untracked, conflicted]
+        oldPath:
+          type: string
+          description: Original path when status is renamed
+
+    GitStatusResponse:
+      type: object
+      required: [repoPath, branch, clean]
+      properties:
+        repoPath:
+          type: string
+        branch:
+          type: string
+        clean:
+          type: boolean
+        ahead:
+          type: integer
+          description: Commits ahead of remote
+        behind:
+          type: integer
+          description: Commits behind remote
+        staged:
+          type: array
+          items:
+            $ref: '#/components/schemas/GitFileStatus'
+        unstaged:
+          type: array
+          items:
+            $ref: '#/components/schemas/GitFileStatus'
+        untracked:
+          type: array
+          items:
+            type: string
+
+    GitBranch:
+      type: object
+      required: [name, current]
+      properties:
+        name:
+          type: string
+        current:
+          type: boolean
+        remote:
+          type: string
+        lastCommit:
+          type: string
+
+    GitBranchListResponse:
+      type: object
+      required: [branches]
+      properties:
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/GitBranch'
+
+    GitDiffResponse:
+      type: object
+      required: [repoPath, diff]
+      properties:
+        repoPath:
+          type: string
+        filePath:
+          type: string
+        diff:
+          type: string
+          description: Unified diff output
+
+    GitCommitRequest:
+      type: object
+      required: [repoPath, message]
+      properties:
+        repoPath:
+          type: string
+        message:
+          type: string
+        paths:
+          type: array
+          items:
+            type: string
+          description: Specific files to stage; empty means stage all changes
+        authorName:
+          type: string
+        authorEmail:
+          type: string
+
+    GitCommitResponse:
+      type: object
+      required: [commitHash, message, author, committedAt]
+      properties:
+        commitHash:
+          type: string
+        message:
+          type: string
+        author:
+          type: string
+        committedAt:
+          type: string
+          format: date-time
+
+    GitCheckoutRequest:
+      type: object
+      required: [repoPath, branch]
+      properties:
+        repoPath:
+          type: string
+        branch:
+          type: string
+        createNew:
+          type: boolean
+          default: false
+          description: Create a new branch if it does not exist
+
+    # ── Terminals ─────────────────────────────────────────────────────────────
+    TerminalCreateRequest:
+      type: object
+      properties:
+        shell:
+          type: string
+          description: Shell executable path
+          example: /bin/bash
+        cwd:
+          type: string
+          description: Initial working directory
+          example: /workspace/my-project
+        env:
+          type: object
+          additionalProperties:
+            type: string
+          description: Extra environment variables
+        cols:
+          type: integer
+          description: Initial terminal width in columns
+          default: 80
+        rows:
+          type: integer
+          description: Initial terminal height in rows
+          default: 24
+
+    TerminalResponse:
+      type: object
+      required: [id, status, cols, rows, createdAt]
+      properties:
+        id:
+          type: string
+        shell:
+          type: string
+        cwd:
+          type: string
+        status:
+          type: string
+          enum: [running, exited]
+        cols:
+          type: integer
+        rows:
+          type: integer
+        pid:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    TerminalListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TerminalResponse'
+
+    TerminalResizeRequest:
+      type: object
+      required: [cols, rows]
+      properties:
+        cols:
+          type: integer
+          minimum: 1
+        rows:
+          type: integer
+          minimum: 1

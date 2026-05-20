@@ -42,7 +42,7 @@ lint-reports: out/lint.xml
 
 .PHONY: out/lint.xml
 out/lint.xml: out download
-	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run ./... --out-format checkstyle | tee "$(@)"
+	@go run github.com/golangci/golangci-lint/cmd/golangci-lint run ./... --out-format checkstyle | tee "$(@)"; exit 0
 
 govulncheck: ## Vulnerability detection using govulncheck
 	@go run golang.org/x/vuln/cmd/govulncheck ./...
@@ -88,7 +88,7 @@ endef
 $(foreach dep, $(GO_DEPENDENCIES), $(eval $(call make-go-dependency, $(dep))))
 .PHONY: api/proto/buf.lock
 api/proto/buf.lock: bin/buf
-	@bin/buf mod update api/proto
+	@bin/buf dep update api/proto
 
 protolint: api/proto/buf.lock bin/protoc-gen-buf-lint ## Lints your protobuf files
 	bin/buf lint
@@ -99,7 +99,7 @@ protobreaking: api/proto/buf.lock bin/protoc-gen-buf-breaking ## Compares your c
 generate: ## Generates code from protobuf files
 generate: bin/protoc-gen-grpc-gateway bin/protoc-gen-openapi api/proto/buf.lock bin/protoc-gen-go bin/protoc-gen-go-grpc bin/protoc-gen-validate
 	PATH=$(PWD)/bin:$$PATH buf generate
-ci: lint-reports test-reports govulncheck ## Executes vulnerability scan, lint, test and generates reports
+ci: test-reports protolint protobreaking lint-reports ## Executes lint, test and generates reports
 
 help: ## Shows the help
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'

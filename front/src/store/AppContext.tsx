@@ -11,6 +11,7 @@ export interface InstallableItem {
 }
 
 export type Theme = 'light' | 'dark';
+export type FontScale = 'compact' | 'standard' | 'comfortable';
 
 export interface WorkdirEntry {
   name: string;
@@ -58,6 +59,8 @@ export interface McpServer {
 interface AppState {
   theme: Theme;
   toggleTheme: () => void;
+  fontScale: FontScale;
+  setFontScale: (scale: FontScale) => void;
   agentModes: AgentModeConfig[];
   setAgentModes: (modes: AgentModeConfig[]) => void;
   activeMode: string;
@@ -139,6 +142,7 @@ function mapMcp(item: ConfigItem): McpServer {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
+  const [fontScale, setFontScale] = useState<FontScale>('standard');
   const [agentModes, setAgentModes] = useState<AgentModeConfig[]>([]);
   const [activeMode, setActiveMode] = useState<string>('');
   const [slashCommands, setSlashCommands] = useState<SlashCommand[]>([]);
@@ -155,6 +159,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedModel, setSelectedModel] = useState<string>('');
 
   useEffect(() => {
+    const savedTheme = window.localStorage.getItem('agent-sandbox-theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      setTheme(savedTheme);
+    }
+
+    const savedScale = window.localStorage.getItem('agent-sandbox-font-scale');
+    if (savedScale === 'compact' || savedScale === 'standard' || savedScale === 'comfortable') {
+      setFontScale(savedScale);
+    }
+
     Promise.all([
       configApi.list('agents'),
       configApi.list('commands'),
@@ -179,7 +193,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(t => (t === 'light' ? 'dark' : 'light'));
+    setTheme(t => {
+      const next = t === 'light' ? 'dark' : 'light';
+      window.localStorage.setItem('agent-sandbox-theme', next);
+      return next;
+    });
+  }, []);
+
+  const handleSetFontScale = useCallback((scale: FontScale) => {
+    setFontScale(scale);
+    window.localStorage.setItem('agent-sandbox-font-scale', scale);
   }, []);
 
   const handleSetActiveProject = useCallback((p: Project | null) => {
@@ -202,6 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppCtx.Provider value={{
       theme, toggleTheme,
+      fontScale, setFontScale: handleSetFontScale,
       agentModes, setAgentModes,
       activeMode, setActiveMode,
       slashCommands, setSlashCommands,

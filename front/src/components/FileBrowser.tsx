@@ -12,8 +12,8 @@ interface TreeNode extends FileEntry {
 }
 
 function FileIcon({ type }: { type: FileEntry['type'] }) {
-  if (type === 'directory') return <Folder size={13} className="text-yellow-500 shrink-0" />;
-  return <File size={13} className="text-gray-400 dark:text-slate-400 shrink-0" />;
+  if (type === 'directory') return <Folder size={14} className="shrink-0 text-amber-500" />;
+  return <File size={14} className="shrink-0 text-slate-400 dark:text-slate-500" />;
 }
 
 function TreeRow({
@@ -34,27 +34,27 @@ function TreeRow({
       <div
         onClick={() => { onSelect(node.path, node.type === 'file'); if (node.type === 'directory') onToggle(node); }}
         className={cn(
-          'flex items-center gap-1 px-2 py-0.5 cursor-pointer text-xs rounded transition-colors',
+          'flex cursor-pointer items-center gap-2 rounded-2xl px-3 py-2 text-sm transition-colors',
           selected === node.path
-            ? 'bg-indigo-100 dark:bg-slate-700 text-indigo-700 dark:text-white'
-            : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700/60'
+            ? 'bg-white text-rose-700 shadow-sm ring-1 ring-rose-100 dark:bg-slate-900 dark:text-white dark:ring-slate-700'
+            : 'text-slate-600 hover:bg-rose-50/90 dark:text-slate-300 dark:hover:bg-slate-900'
         )}
-        style={{ paddingLeft: 8 + depth * 12 }}
+        style={{ paddingLeft: 12 + depth * 14 }}
       >
         {node.type === 'directory' ? (
           node.expanded
-            ? <ChevronDown size={11} className="shrink-0 text-gray-400 dark:text-slate-500" />
-            : <ChevronRight size={11} className="shrink-0 text-gray-400 dark:text-slate-500" />
+            ? <ChevronDown size={13} className="shrink-0 text-slate-400 dark:text-slate-500" />
+            : <ChevronRight size={13} className="shrink-0 text-slate-400 dark:text-slate-500" />
         ) : (
           <span className="w-3 shrink-0" />
         )}
         {node.type === 'directory' && node.expanded
-          ? <FolderOpen size={13} className="text-yellow-500 shrink-0" />
+          ? <FolderOpen size={14} className="shrink-0 text-amber-500" />
           : <FileIcon type={node.type} />
         }
         <span className="truncate">{node.name}</span>
         {node.size != null && node.type === 'file' && (
-          <span className="ml-auto text-[10px] text-gray-400 dark:text-slate-600">{formatSize(node.size)}</span>
+          <span className="ml-auto text-[11px] text-slate-400 dark:text-slate-500">{formatSize(node.size)}</span>
         )}
       </div>
       {node.expanded && node.children?.map(child => (
@@ -108,38 +108,38 @@ function FileEditor({ path, onClose }: FileEditorProps) {
   const fileName = path.split('/').pop() ?? path;
 
   return (
-    <div className="flex flex-col h-full border-t border-gray-200 dark:border-slate-700">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-slate-700 shrink-0">
-        <span className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate flex-1">{fileName}{dirty ? ' •' : ''}</span>
-        <div className="flex items-center gap-1 shrink-0">
+    <div className="mt-2 flex h-full flex-col overflow-hidden rounded-[24px] border border-rose-100 bg-white/92 shadow-[0_14px_35px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/88">
+      <div className="flex shrink-0 items-center justify-between border-b border-rose-100 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/80">
+        <span className="flex-1 truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{fileName}{dirty ? ' •' : ''}</span>
+        <div className="flex shrink-0 items-center gap-2">
           <button
             onClick={save}
             disabled={saving || !dirty}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-40 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
             title="Save (Ctrl+S)"
           >
-            {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+            {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
           </button>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
           >
-            <X size={12} />
+            <X size={13} />
           </button>
         </div>
       </div>
       {loading && (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 size={20} className="animate-spin text-indigo-500" />
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 size={20} className="animate-spin text-rose-500 dark:text-indigo-400" />
         </div>
       )}
-      {error && <div className="text-xs text-red-500 px-3 py-2">{error}</div>}
+      {error && <div className="px-4 py-3 text-xs text-red-500">{error}</div>}
       {!loading && !error && (
         <textarea
           value={content}
           onChange={e => { setContent(e.target.value); setDirty(true); }}
           onKeyDown={e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); } }}
-          className="flex-1 w-full p-2 text-xs font-mono bg-white dark:bg-[#0d1117] text-gray-800 dark:text-slate-200 outline-none resize-none border-none"
+          className="flex-1 w-full resize-none border-none bg-transparent p-4 font-mono text-xs leading-6 text-slate-700 outline-none dark:text-slate-200"
           spellCheck={false}
         />
       )}
@@ -206,33 +206,38 @@ export function FileBrowser() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-slate-700">
-        <span className="text-xs font-semibold text-gray-600 dark:text-slate-300">文件</span>
+    <div className="flex h-full flex-col overflow-hidden px-3 py-3">
+      <div className="flex items-center justify-between rounded-[24px] border border-rose-100 bg-white/88 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/80">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-400 dark:text-slate-500">Files</div>
+          <div className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">文件浏览</div>
+        </div>
         <button
           onClick={refresh}
           disabled={loading || !rootPath}
-          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors disabled:opacity-40"
+          className="flex h-10 w-10 items-center justify-center rounded-2xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
         >
-          {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-1 min-h-0">
-        {error && <div className="text-xs text-red-500 px-3 py-2">{error}</div>}
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[24px] border border-rose-100 bg-white/70 p-2 shadow-sm dark:border-slate-800 dark:bg-slate-950/65">
+        {error && <div className="px-3 py-3 text-xs text-red-500">{error}</div>}
         {!rootPath && (
-          <div className="text-xs text-gray-400 dark:text-slate-600 text-center mt-6">Select a project first</div>
+          <div className="mt-8 px-4 text-center text-sm text-slate-400 dark:text-slate-500">Select a project first</div>
         )}
         {rootPath && !loading && tree.length === 0 && !error && (
-          <div className="text-xs text-gray-400 dark:text-slate-600 text-center mt-6">Empty directory</div>
+          <div className="mt-8 px-4 text-center text-sm text-slate-400 dark:text-slate-500">Empty directory</div>
         )}
-        {tree.map(n => (
-          <TreeRow key={n.path} node={n} depth={0} onToggle={handleToggle} selected={selected} onSelect={handleSelect} />
-        ))}
+        <div className="space-y-1">
+          {tree.map(n => (
+            <TreeRow key={n.path} node={n} depth={0} onToggle={handleToggle} selected={selected} onSelect={handleSelect} />
+          ))}
+        </div>
       </div>
 
       {editingFile && (
-        <div className="flex-1 min-h-0 flex flex-col" style={{ minHeight: 200 }}>
+        <div className="min-h-0 flex-1" style={{ minHeight: 220 }}>
           <FileEditor path={editingFile} onClose={() => setEditingFile(null)} />
         </div>
       )}

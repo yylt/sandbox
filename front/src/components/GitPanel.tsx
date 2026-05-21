@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { GitBranch, RefreshCw, Plus, Minus, FileEdit, AlertTriangle, Loader2, ChevronDown, X, GitCommit, ChevronRight } from 'lucide-react';
 import { gitApi, filesApi } from '../api/client';
 import { useAppStore } from '../store/AppContext';
@@ -10,7 +10,7 @@ const STATUS_ICON: Record<GitFileStatus['status'], React.ReactNode> = {
   added: <Plus size={11} className="text-emerald-500" />,
   deleted: <Minus size={11} className="text-red-500" />,
   renamed: <FileEdit size={11} className="text-blue-500" />,
-  untracked: <Plus size={11} className="text-gray-400 dark:text-slate-400" />,
+  untracked: <Plus size={11} className="text-slate-400 dark:text-slate-400" />,
   conflicted: <AlertTriangle size={11} className="text-red-500" />,
 };
 
@@ -19,7 +19,7 @@ const STATUS_COLOR: Record<GitFileStatus['status'], string> = {
   added: 'text-emerald-600 dark:text-emerald-400',
   deleted: 'text-red-600 dark:text-red-400',
   renamed: 'text-blue-600 dark:text-blue-400',
-  untracked: 'text-gray-500 dark:text-slate-400',
+  untracked: 'text-slate-500 dark:text-slate-400',
   conflicted: 'text-red-600 dark:text-red-500',
 };
 
@@ -83,7 +83,6 @@ function SplitDiffPanel({
       .then(r => {
         setDiff(r.diff);
         if (!r.diff) {
-          // No diff — load file content instead
           const absPath = repoPath.replace(/\/$/, '') + '/' + filePath;
           return filesApi.readContent(absPath).then(fc => {
             const content = fc.encoding === 'base64' ? atob(fc.content) : fc.content;
@@ -99,68 +98,64 @@ function SplitDiffPanel({
   const rows = mode === 'diff' ? parseDiffToSideBySide(diff) : [];
 
   return (
-    <div className="flex flex-col border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-[#0d1117]" style={{ height: 280 }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-slate-700 shrink-0 bg-gray-50 dark:bg-[#161b22]">
-        <span className="text-[11px] font-medium text-gray-600 dark:text-slate-300 truncate flex-1">
+    <div className="mt-3 flex flex-col overflow-hidden rounded-[24px] border border-rose-100 bg-white/92 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/88" style={{ height: 300 }}>
+      <div className="flex shrink-0 items-center justify-between border-b border-rose-100 bg-white/90 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/80">
+        <span className="flex-1 truncate text-[11px] font-semibold text-slate-700 dark:text-slate-200">
           {filePath.split('/').pop()}
-          <span className="ml-1.5 text-[9px] opacity-50">
+          <span className="ml-1.5 text-[10px] opacity-50">
             {mode === 'content' ? '文件内容' : staged ? '已暂存' : '未暂存'}
           </span>
         </span>
-        <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors ml-1 shrink-0">
-          <X size={11} />
+        <button onClick={onClose} className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white">
+          <X size={12} />
         </button>
       </div>
-      {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center flex-1"><Loader2 size={14} className="animate-spin text-indigo-500" /></div>
+        <div className="flex flex-1 items-center justify-center"><Loader2 size={15} className="animate-spin text-rose-500 dark:text-indigo-400" /></div>
       ) : mode === 'content' ? (
         <div className="flex-1 overflow-auto">
-          <pre className="text-[10px] font-mono leading-relaxed p-2 text-gray-700 dark:text-slate-300 whitespace-pre">
+          <pre className="p-3 text-[10px] leading-relaxed whitespace-pre text-slate-700 dark:text-slate-300 font-mono">
             {fileContent || '（空文件）'}
           </pre>
         </div>
       ) : diff === '' ? (
-        <div className="text-[10px] text-gray-400 dark:text-slate-500 text-center py-4">无差异</div>
+        <div className="py-5 text-center text-[11px] text-slate-400 dark:text-slate-500">无差异</div>
       ) : (
-        <div className="flex flex-1 overflow-auto min-h-0">
-          {/* Before */}
-          <div className="flex-1 border-r border-gray-100 dark:border-slate-800 overflow-auto min-w-0">
-            <div className="text-[9px] font-semibold text-gray-400 dark:text-slate-500 px-2 py-0.5 bg-gray-50 dark:bg-[#161b22] border-b border-gray-100 dark:border-slate-800 sticky top-0">修改前</div>
-            <pre className="text-[10px] font-mono leading-relaxed p-1">
+        <div className="flex min-h-0 flex-1 overflow-auto">
+          <div className="min-w-0 flex-1 overflow-auto border-r border-rose-100 dark:border-slate-800">
+            <div className="sticky top-0 border-b border-rose-100 bg-rose-50/80 px-2 py-1 text-[9px] font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500">修改前</div>
+            <pre className="p-1 text-[10px] leading-relaxed font-mono">
               {rows.map((r, i) => (
                 <div
                   key={i}
                   className={cn(
                     'flex',
-                    r.type === 'del' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400' :
-                    r.type === 'hunk' ? 'text-blue-500 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10' :
-                    'text-gray-700 dark:text-slate-400'
+                    r.type === 'del' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
+                    r.type === 'hunk' ? 'bg-blue-50/50 text-blue-500 dark:bg-blue-900/10 dark:text-blue-400' :
+                    'text-slate-700 dark:text-slate-400'
                   )}
                 >
-                  <span className="select-none text-[9px] text-gray-300 dark:text-slate-600 w-6 shrink-0 text-right pr-1">{r.type !== 'hunk' && r.type !== 'add' ? r.lineNo : ''}</span>
+                  <span className="w-6 shrink-0 select-none pr-1 text-right text-[9px] text-slate-300 dark:text-slate-600">{r.type !== 'hunk' && r.type !== 'add' ? r.lineNo : ''}</span>
                   <span className="whitespace-pre">{r.type === 'hunk' ? r.before : r.before || '\u00a0'}</span>
                 </div>
               ))}
             </pre>
           </div>
-          {/* After */}
-          <div className="flex-1 overflow-auto min-w-0">
-            <div className="text-[9px] font-semibold text-gray-400 dark:text-slate-500 px-2 py-0.5 bg-gray-50 dark:bg-[#161b22] border-b border-gray-100 dark:border-slate-800 sticky top-0">修改后</div>
-            <pre className="text-[10px] font-mono leading-relaxed p-1">
+          <div className="min-w-0 flex-1 overflow-auto">
+            <div className="sticky top-0 border-b border-rose-100 bg-emerald-50/70 px-2 py-1 text-[9px] font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500">修改后</div>
+            <pre className="p-1 text-[10px] leading-relaxed font-mono">
               {rows.map((r, i) => (
                 <div
                   key={i}
                   className={cn(
                     'flex',
-                    r.type === 'add' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' :
-                    r.type === 'del' && r.after ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' :
-                    r.type === 'hunk' ? 'text-blue-500 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10' :
-                    'text-gray-700 dark:text-slate-400'
+                    r.type === 'add' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
+                    r.type === 'del' && r.after ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
+                    r.type === 'hunk' ? 'bg-blue-50/50 text-blue-500 dark:bg-blue-900/10 dark:text-blue-400' :
+                    'text-slate-700 dark:text-slate-400'
                   )}
                 >
-                  <span className="select-none text-[9px] text-gray-300 dark:text-slate-600 w-6 shrink-0 text-right pr-1">{r.type !== 'hunk' && r.type !== 'del' ? r.lineNo : r.type === 'del' && r.after ? r.lineNo : ''}</span>
+                  <span className="w-6 shrink-0 select-none pr-1 text-right text-[9px] text-slate-300 dark:text-slate-600">{r.type !== 'hunk' && r.type !== 'del' ? r.lineNo : r.type === 'del' && r.after ? r.lineNo : ''}</span>
                   <span className="whitespace-pre">{r.type === 'hunk' ? r.after : (r.after || (r.type === 'del' ? '\u00a0' : r.before || '\u00a0'))}</span>
                 </div>
               ))}
@@ -173,7 +168,7 @@ function SplitDiffPanel({
 }
 
 function FileRow({
-  f, repoPath, staged, selected, onSelect, onStage,
+  f, staged, selected, onSelect, onStage,
 }: {
   f: GitFileStatus; repoPath: string; staged: boolean;
   selected: boolean; onSelect: () => void; onStage?: () => void;
@@ -182,26 +177,25 @@ function FileRow({
     <div
       onClick={onSelect}
       className={cn(
-        'flex items-center gap-1.5 px-2 py-0.5 rounded text-xs cursor-pointer group',
+        'group flex cursor-pointer items-center gap-2 rounded-2xl px-3 py-2 text-sm',
         selected
-          ? 'bg-indigo-50 dark:bg-indigo-900/30'
-          : 'hover:bg-gray-50 dark:hover:bg-slate-700/40'
+          ? 'bg-white shadow-sm ring-1 ring-rose-100 dark:bg-slate-900 dark:ring-slate-700'
+          : 'hover:bg-rose-50/90 dark:hover:bg-slate-900'
       )}
     >
-      {/* Stage button (only for unstaged/untracked) */}
       {!staged && onStage && (
         <button
           onClick={e => { e.stopPropagation(); onStage(); }}
           title="暂存此文件"
-          className="p-0.5 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-gray-300 dark:text-slate-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all hover:bg-emerald-100 hover:text-emerald-600 group-hover:opacity-100 dark:text-slate-600 dark:hover:bg-emerald-900/40 dark:hover:text-emerald-400"
         >
           <Plus size={11} />
         </button>
       )}
-      {staged && <span className="w-4 shrink-0" />}
+      {staged && <span className="w-6 shrink-0" />}
       {STATUS_ICON[f.status]}
-      <span className={cn('truncate flex-1', STATUS_COLOR[f.status])}>{f.path}</span>
-      <ChevronRight size={9} className={cn('shrink-0 text-gray-300 dark:text-slate-600 transition-transform', selected && 'rotate-90')} />
+      <span className={cn('flex-1 truncate', STATUS_COLOR[f.status])}>{f.path}</span>
+      <ChevronRight size={10} className={cn('shrink-0 text-slate-300 transition-transform dark:text-slate-600', selected && 'rotate-90')} />
     </div>
   );
 }
@@ -217,31 +211,35 @@ function Section({
   const [open, setOpen] = useState(true);
   if (files.length === 0) return null;
   return (
-    <div>
+    <div className="mt-3 rounded-[22px] border border-rose-100 bg-white/70 p-2 dark:border-slate-800 dark:bg-slate-950/60">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 w-full px-3 py-1 text-[10px] uppercase tracking-wider text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
+        className="flex w-full items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
       >
         <ChevronDown size={10} className={cn('transition-transform', !open && '-rotate-90')} />
-        {title} <span className="ml-1 bg-gray-100 dark:bg-slate-700 rounded px-1">{files.length}</span>
+        {title} <span className="ml-1 rounded-full bg-rose-100 px-1.5 py-0.5 tracking-normal text-rose-600 dark:bg-slate-800 dark:text-slate-300">{files.length}</span>
       </button>
-      {open && files.map(f => (
-        <FileRow
-          key={f.path + f.status}
-          f={f}
-          repoPath={repoPath}
-          staged={staged}
-          selected={selectedFile?.filePath === f.path && selectedFile?.staged === staged}
-          onSelect={() => {
-            if (selectedFile?.filePath === f.path && selectedFile?.staged === staged) {
-              onSelectFile(null);
-            } else {
-              onSelectFile({ filePath: f.path, staged });
-            }
-          }}
-          onStage={onStage ? () => onStage(f.path) : undefined}
-        />
-      ))}
+      {open && (
+        <div className="mt-1 space-y-1">
+          {files.map(f => (
+            <FileRow
+              key={f.path + f.status}
+              f={f}
+              repoPath={repoPath}
+              staged={staged}
+              selected={selectedFile?.filePath === f.path && selectedFile?.staged === staged}
+              onSelect={() => {
+                if (selectedFile?.filePath === f.path && selectedFile?.staged === staged) {
+                  onSelectFile(null);
+                } else {
+                  onSelectFile({ filePath: f.path, staged });
+                }
+              }}
+              onStage={onStage ? () => onStage(f.path) : undefined}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -266,26 +264,26 @@ function BranchSection({ repoPath }: { repoPath: string }) {
   }, [open, load]);
 
   return (
-    <div className="border-b border-gray-200 dark:border-slate-700">
+    <div className="mt-3 rounded-[22px] border border-rose-100 bg-white/70 p-2 dark:border-slate-800 dark:bg-slate-950/60">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 w-full px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
+        className="flex w-full items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
       >
         <ChevronDown size={10} className={cn('transition-transform', !open && '-rotate-90')} />
         <GitBranch size={10} className="mr-0.5" />
         分支列表
       </button>
       {open && (
-        <div className="pb-1">
-          {loading && <div className="flex justify-center py-2"><Loader2 size={12} className="animate-spin text-indigo-500" /></div>}
+        <div className="mt-1 space-y-1 pb-1">
+          {loading && <div className="flex justify-center py-3"><Loader2 size={12} className="animate-spin text-rose-500 dark:text-indigo-400" /></div>}
           {branches.map(b => (
             <div key={b.name} className={cn(
-              'flex items-center gap-2 px-4 py-0.5 text-xs',
-              b.current ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-gray-600 dark:text-slate-400'
+              'flex items-center gap-2 rounded-2xl px-3 py-2 text-sm',
+              b.current ? 'bg-white text-rose-600 shadow-sm dark:bg-slate-900 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'
             )}>
-              <GitBranch size={10} className="shrink-0" />
+              <GitBranch size={11} className="shrink-0" />
               <span className="truncate">{b.name}</span>
-              {b.current && <span className="ml-auto text-[9px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1 rounded">当前</span>}
+              {b.current && <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-[10px] text-rose-600 dark:bg-indigo-900/40 dark:text-indigo-300">当前</span>}
             </div>
           ))}
         </div>
@@ -308,20 +306,20 @@ function CommitLogSection({ repoPath }: { repoPath: string }) {
   }, [open, repoPath]);
 
   return (
-    <div className="border-b border-gray-200 dark:border-slate-700">
+    <div className="mt-3 rounded-[22px] border border-rose-100 bg-white/70 p-2 dark:border-slate-800 dark:bg-slate-950/60">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 w-full px-3 py-1.5 text-[10px] uppercase tracking-wider text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
+        className="flex w-full items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
       >
         <ChevronDown size={10} className={cn('transition-transform', !open && '-rotate-90')} />
         <GitCommit size={10} className="mr-0.5" />
         提交记录
       </button>
       {open && (
-        <div className="pb-1">
-          {loading && <div className="flex justify-center py-2"><Loader2 size={12} className="animate-spin text-indigo-500" /></div>}
+        <div className="mt-1 space-y-1 pb-1">
+          {loading && <div className="flex justify-center py-3"><Loader2 size={12} className="animate-spin text-rose-500 dark:text-indigo-400" /></div>}
           {log.map((l, i) => (
-            <div key={i} className="px-4 py-0.5 text-[10px] text-gray-500 dark:text-slate-500 font-mono truncate">{l}</div>
+            <div key={i} className="rounded-2xl px-3 py-2 text-[11px] text-slate-500 dark:text-slate-500 font-mono">{l}</div>
           ))}
         </div>
       )}
@@ -385,102 +383,99 @@ export function GitPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* File list */}
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        {/* Branch info header */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-200 dark:border-slate-700 shrink-0">
-          {status && (
-            <>
-              <GitBranch size={12} className="text-indigo-500" />
-              <span className="text-xs text-gray-700 dark:text-slate-300 font-medium truncate">{status.branch}</span>
-              {status.ahead != null && status.ahead > 0 && (
-                <span className="text-[9px] text-blue-500 shrink-0">↑{status.ahead}</span>
-              )}
-              {status.behind != null && status.behind > 0 && (
-                <span className="text-[9px] text-orange-500 shrink-0">↓{status.behind}</span>
-              )}
-              {!status.clean && <span className="ml-auto text-[10px] bg-yellow-100 dark:bg-yellow-900/40 text-yellow-600 dark:text-yellow-400 px-1.5 rounded shrink-0">dirty</span>}
-              {status.clean && <span className="ml-auto text-[10px] bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 px-1.5 rounded shrink-0">clean</span>}
-            </>
-          )}
-          {!status && !loading && (
-            <span className="text-xs text-gray-400 dark:text-slate-500">{repoPath ? 'Click refresh' : 'No project'}</span>
-          )}
-          <button
-            onClick={refresh}
-            disabled={loading || !repoPath}
-            className="ml-auto p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white transition-colors disabled:opacity-40 shrink-0"
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-          </button>
-        </div>
+    <div className="flex h-full flex-col overflow-hidden px-3 py-3">
+      <div className="flex items-center gap-3 rounded-[24px] border border-rose-100 bg-white/88 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/80">
+        {status ? (
+          <>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-500 dark:bg-indigo-900/40 dark:text-indigo-300">
+              <GitBranch size={15} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{status.branch}</div>
+              <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+                {status.ahead != null && status.ahead > 0 && <span>↑{status.ahead}</span>}
+                {status.behind != null && status.behind > 0 && <span>↓{status.behind}</span>}
+                <span className={cn('rounded-full px-2 py-0.5', status.clean ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300')}>
+                  {status.clean ? 'clean' : 'dirty'}
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="min-w-0 flex-1 text-sm text-slate-400 dark:text-slate-500">{repoPath ? 'Click refresh' : 'No project'}</div>
+        )}
+        <button
+          onClick={refresh}
+          disabled={loading || !repoPath}
+          className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+        >
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+        </button>
+      </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {repoPath && <BranchSection repoPath={repoPath} />}
-          {repoPath && <CommitLogSection repoPath={repoPath} />}
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[24px] border border-rose-100 bg-white/70 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/65">
+        {repoPath && <BranchSection repoPath={repoPath} />}
+        {repoPath && <CommitLogSection repoPath={repoPath} />}
 
-          {error && <div className="text-xs text-red-500 px-3 py-2">{error}</div>}
+        {error && <div className="mt-3 rounded-2xl bg-red-50 px-4 py-3 text-xs text-red-500 dark:bg-red-900/20">{error}</div>}
 
-          {status && (
-            <>
+        {status && (
+          <>
+            <Section
+              title="已暂存"
+              files={status.staged}
+              repoPath={repoPath}
+              staged={true}
+              selectedFile={selectedDiff}
+              onSelectFile={setSelectedDiff}
+            />
+            <Section
+              title="变更"
+              files={status.unstaged}
+              repoPath={repoPath}
+              staged={false}
+              selectedFile={selectedDiff}
+              onSelectFile={setSelectedDiff}
+              onStage={handleStage}
+            />
+            {status.untracked.length > 0 && (
               <Section
-                title="已暂存"
-                files={status.staged}
-                repoPath={repoPath}
-                staged={true}
-                selectedFile={selectedDiff}
-                onSelectFile={setSelectedDiff}
-              />
-              <Section
-                title="变更"
-                files={status.unstaged}
+                title="未跟踪"
+                files={status.untracked.map(p => ({ path: p, status: 'untracked' as const }))}
                 repoPath={repoPath}
                 staged={false}
                 selectedFile={selectedDiff}
                 onSelectFile={setSelectedDiff}
                 onStage={handleStage}
               />
-              {status.untracked.length > 0 && (
-                <Section
-                  title="未跟踪"
-                  files={status.untracked.map(p => ({ path: p, status: 'untracked' as const }))}
-                  repoPath={repoPath}
-                  staged={false}
-                  selectedFile={selectedDiff}
-                  onSelectFile={setSelectedDiff}
-                  onStage={handleStage}
-                />
-              )}
-              {status.clean && (
-                <div className="text-xs text-gray-400 dark:text-slate-600 text-center py-4 px-3">无变更</div>
-              )}
-            </>
-          )}
-        </div>
-
-        {status && !status.clean && (
-          <div className="px-2 pb-2 pt-1 border-t border-gray-200 dark:border-slate-700 shrink-0">
-            <textarea
-              value={commitMsg}
-              onChange={e => setCommitMsg(e.target.value)}
-              placeholder="提交信息..."
-              rows={2}
-              className="w-full text-xs bg-gray-50 dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 rounded px-2 py-1.5 outline-none resize-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400 dark:focus:border-indigo-500 transition-colors"
-            />
-            <button
-              onClick={handleCommit}
-              disabled={!commitMsg.trim() || committing}
-              className="mt-1 w-full text-xs bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-200 dark:disabled:bg-slate-700 disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-slate-500 text-white rounded py-1.5 transition-colors flex items-center justify-center gap-1"
-            >
-              {committing ? <Loader2 size={12} className="animate-spin" /> : null}
-              提交
-            </button>
-          </div>
+            )}
+            {status.clean && (
+              <div className="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500">无变更</div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Diff panel — shown below file list when a file is selected */}
+      {status && !status.clean && (
+        <div className="mt-3 rounded-[24px] border border-rose-100 bg-white/88 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/80">
+          <textarea
+            value={commitMsg}
+            onChange={e => setCommitMsg(e.target.value)}
+            placeholder="提交信息..."
+            rows={2}
+            className="w-full resize-none rounded-2xl border border-rose-100 bg-rose-50/60 px-3 py-2 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-rose-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-indigo-500"
+          />
+          <button
+            onClick={handleCommit}
+            disabled={!commitMsg.trim() || committing}
+            className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-fuchsia-500 text-sm font-medium text-white transition-all hover:-translate-y-px hover:from-rose-400 hover:to-fuchsia-400 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:bg-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
+          >
+            {committing ? <Loader2 size={13} className="animate-spin" /> : null}
+            提交
+          </button>
+        </div>
+      )}
+
       {selectedDiff && (
         <SplitDiffPanel
           repoPath={repoPath}

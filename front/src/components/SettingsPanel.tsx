@@ -3,7 +3,13 @@ import { X, Sun, Moon, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-re
 import { configApi } from '../api/client';
 import { useAppStore } from '../store/AppContext';
 import { cn } from '../lib/utils';
-import type { AgentModeConfig, SlashCommand, Skill, McpServer, InstallableItem } from '../store/AppContext';
+import type { AgentModeConfig, SlashCommand, Skill, McpServer, InstallableItem, FontScale } from '../store/AppContext';
+
+const FONT_SCALE_OPTIONS: Array<{ id: FontScale; label: string; desc: string }> = [
+  { id: 'compact', label: '紧凑', desc: '更高信息密度' },
+  { id: 'standard', label: '标准', desc: '平衡阅读与密度' },
+  { id: 'comfortable', label: '舒适', desc: '更大字号，更易读' },
+];
 
 interface Props {
   onClose: () => void;
@@ -11,10 +17,11 @@ interface Props {
 
 function SectionHeader({ title, open, onToggle, onAdd }: { title: string; open: boolean; onToggle: () => void; onAdd?: () => void }) {
   return (
-    <div className="flex items-center gap-1 mb-2">
+        <div className="mb-2 flex items-center gap-2">
+
       <button
         onClick={onToggle}
-        className="flex items-center gap-1 flex-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 transition-colors"
+        className="flex flex-1 items-center gap-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-200"
       >
         <ChevronDown size={12} className={cn('transition-transform', !open && '-rotate-90')} />
         {title}
@@ -22,7 +29,8 @@ function SectionHeader({ title, open, onToggle, onAdd }: { title: string; open: 
       {onAdd && (
         <button
           onClick={onAdd}
-          className="w-5 h-5 rounded flex items-center justify-center bg-gray-100 dark:bg-slate-700 hover:bg-indigo-600 text-gray-400 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-slate-400 transition-colors hover:bg-slate-50 hover:text-sky-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-cyan-200"
+
         >
           <Plus size={11} />
         </button>
@@ -45,17 +53,17 @@ function PromptEditor({
   onSave: () => void;
 }) {
   return (
-    <div className="space-y-1.5">
-      <div className="text-[11px] font-medium text-gray-500 dark:text-slate-400">{title}</div>
+    <div className="space-y-2">
+      <div className="text-[11px] font-medium text-slate-500">{title}</div>
       <textarea
         value={value}
         onChange={e => onChange(e.target.value)}
         rows={4}
-        className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400 resize-none"
+        className="w-full resize-none rounded-2xl border border-cyan-400/14 bg-slate-950 px-3 py-2 text-xs text-slate-200 outline-none focus:border-cyan-300/30"
       />
-      <div className="flex gap-1.5">
-        <button onClick={onCancel} className="flex-1 text-xs py-1 rounded bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">取消</button>
-        <button onClick={onSave} className="flex-1 text-xs py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center justify-center gap-1"><Check size={10} />保存</button>
+      <div className="flex gap-2">
+        <button onClick={onCancel} className="flex-1 rounded-xl bg-slate-100 py-2 text-xs text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">取消</button>
+        <button onClick={onSave} className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-sky-200 bg-[linear-gradient(135deg,rgba(96,165,250,0.94),rgba(129,140,248,0.9))] py-2 text-xs text-white transition-all hover:-translate-y-px hover:brightness-105 dark:border-cyan-300/20 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.98),rgba(99,102,241,0.96))] dark:hover:brightness-110"><Check size={10} />保存</button>
       </div>
     </div>
   );
@@ -85,43 +93,43 @@ function ModeItem({ mode, active, onSelect, onDelete, onSave }: {
 
   return (
     <div className={cn(
-      'rounded-lg border p-2.5 transition-colors',
-      active ? 'border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800'
+      'rounded-[24px] border p-3 transition-colors',
+      active ? 'border-sky-200 bg-white shadow-[0_10px_28px_rgba(148,163,184,0.14)] dark:border-cyan-300/26 dark:bg-slate-950 dark:shadow-[0_10px_28px_rgba(2,6,23,0.28)]' : 'border-slate-200 bg-white/76 dark:border-cyan-400/14 dark:bg-slate-950/80'
     )}>
       {editing ? (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-medium text-gray-500 dark:text-slate-400">{mode.label} — 描述</div>
+          <div className="text-[11px] font-medium text-slate-500">{mode.label} — 描述</div>
           <input
             value={draftDesc}
             onChange={e => setDraftDesc(e.target.value)}
             placeholder="描述"
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
           />
-          <div className="text-[11px] font-medium text-gray-500 dark:text-slate-400 pt-0.5">提示词</div>
+          <div className="pt-0.5 text-[11px] font-medium text-slate-500">提示词</div>
           <textarea
             value={draftPrompt}
             onChange={e => setDraftPrompt(e.target.value)}
             rows={4}
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400 resize-none"
+            className="w-full resize-none rounded border border-cyan-400/14 bg-slate-950 px-2 py-1 text-xs text-slate-200 outline-none focus:border-cyan-300/30"
           />
           <div className="flex gap-1.5">
-            <button onClick={cancel} className="flex-1 text-xs py-1 rounded bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">取消</button>
-            <button onClick={save} className="flex-1 text-xs py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center justify-center gap-1"><Check size={10} />保存</button>
+             <button onClick={cancel} className="flex-1 rounded bg-slate-100 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">取消</button>
+             <button onClick={save} className="flex flex-1 items-center justify-center gap-1 rounded bg-sky-500 py-1 text-xs text-white transition-colors hover:bg-sky-400 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"><Check size={10} />保存</button>
           </div>
         </div>
       ) : (
         <div className="flex items-start gap-2">
           <button onClick={onSelect} className="flex items-center gap-2 flex-1 text-left min-w-0">
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-gray-700 dark:text-slate-300">{mode.label}{mode.desc ? `(${mode.desc})` : ''}</div>
-              {mode.source && <div className="text-[9px] text-blue-400 dark:text-blue-500 truncate mt-0.5">{mode.source}</div>}
+              <div className="text-xs font-semibold text-slate-700 dark:text-slate-200">{mode.label}{mode.desc ? `(${mode.desc})` : ''}</div>
+              {mode.source && <div className="mt-0.5 truncate text-[9px] text-sky-500 dark:text-sky-400">{mode.source}</div>}
             </div>
-            {active && <span className="ml-auto text-[9px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 px-1 rounded shrink-0">当前</span>}
+            {active && <span className="ml-auto shrink-0 rounded border border-sky-200 bg-sky-50 px-1 text-[9px] text-sky-700 dark:border-cyan-300/24 dark:bg-cyan-400/10 dark:text-cyan-200">当前</span>}
           </button>
-          <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors shrink-0">
+          <button onClick={() => setEditing(true)} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200">
             <Edit2 size={10} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+          <button onClick={onDelete} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/15 dark:hover:text-red-300">
             <Trash2 size={10} />
           </button>
         </div>
@@ -151,41 +159,41 @@ function SlashCommandItem({ cmd, onDelete, onSave }: {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 p-2.5">
+    <div className="rounded-[24px] border border-slate-200 bg-white/76 p-3 dark:border-cyan-400/14 dark:bg-slate-950/80">
       {editing ? (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-medium text-gray-500 dark:text-slate-400">/{cmd.name} — 描述</div>
+          <div className="text-[11px] font-medium text-slate-500">/{cmd.name} — 描述</div>
           <input
             value={draftDesc}
             onChange={e => setDraftDesc(e.target.value)}
             placeholder="描述（显示在 / 弹出列表中）"
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
           />
-          <div className="text-[11px] font-medium text-gray-500 dark:text-slate-400 pt-0.5">提示词</div>
+          <div className="pt-0.5 text-[11px] font-medium text-slate-500">提示词</div>
           <textarea
             value={draftPrompt}
             onChange={e => setDraftPrompt(e.target.value)}
             placeholder="提示词模板，用 {% ARGUMENT %} 表示参数"
             rows={3}
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400 resize-none"
+            className="w-full resize-none rounded border border-cyan-400/14 bg-slate-950 px-2 py-1 text-xs text-slate-200 outline-none focus:border-cyan-300/30"
           />
           <div className="flex gap-1.5">
-            <button onClick={cancel} className="flex-1 text-xs py-1 rounded bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">取消</button>
-            <button onClick={save} className="flex-1 text-xs py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center justify-center gap-1"><Check size={10} />保存</button>
+             <button onClick={cancel} className="flex-1 rounded bg-slate-100 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">取消</button>
+             <button onClick={save} className="flex flex-1 items-center justify-center gap-1 rounded bg-sky-500 py-1 text-xs text-white transition-colors hover:bg-sky-400 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"><Check size={10} />保存</button>
           </div>
         </div>
       ) : (
         <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400">/{cmd.name}</div>
-            {cmd.desc && <div className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">{cmd.desc}</div>}
-            {cmd.source && <div className="text-[9px] text-blue-400 dark:text-blue-500 truncate mt-0.5">{cmd.source}</div>}
-            <div className="text-[10px] text-gray-400 dark:text-slate-500 truncate mt-0.5">{cmd.prompt}</div>
+            <div className="text-xs font-mono font-semibold text-sky-700 dark:text-cyan-300">/{cmd.name}</div>
+            {cmd.desc && <div className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">{cmd.desc}</div>}
+            {cmd.source && <div className="mt-0.5 truncate text-[9px] text-sky-500 dark:text-sky-400">{cmd.source}</div>}
+            <div className="mt-0.5 truncate text-[10px] text-slate-400 dark:text-slate-500">{cmd.prompt}</div>
           </div>
-          <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors shrink-0">
+          <button onClick={() => setEditing(true)} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200">
             <Edit2 size={10} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+          <button onClick={onDelete} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/15 dark:hover:text-red-300">
             <Trash2 size={10} />
           </button>
         </div>
@@ -208,7 +216,7 @@ function SkillItem({ skill, onDelete, onSave }: {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 p-2.5">
+    <div className="rounded-[24px] border border-slate-200 bg-white/76 p-3 dark:border-cyan-400/14 dark:bg-slate-950/80">
       {editing ? (
         <PromptEditor
           title={`${skill.name} 提示词`}
@@ -220,14 +228,14 @@ function SkillItem({ skill, onDelete, onSave }: {
       ) : (
         <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-gray-700 dark:text-slate-300">{skill.name}</div>
-            <div className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{skill.desc}</div>
-            {skill.source && <div className="text-[9px] text-blue-400 dark:text-blue-500 truncate mt-0.5">{skill.source}</div>}
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-200">{skill.name}</div>
+            <div className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">{skill.desc}</div>
+            {skill.source && <div className="mt-0.5 truncate text-[9px] text-sky-500 dark:text-sky-400">{skill.source}</div>}
           </div>
-          <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors shrink-0">
+          <button onClick={() => setEditing(true)} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200">
             <Edit2 size={10} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+          <button onClick={onDelete} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/15 dark:hover:text-red-300">
             <Trash2 size={10} />
           </button>
         </div>
@@ -247,51 +255,51 @@ function McpItem({ server, onDelete, onSave }: {
   const save = () => { onSave(draft); setEditing(false); };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 p-2.5">
+    <div className="rounded-[24px] border border-slate-200 bg-white/76 p-3 dark:border-cyan-400/14 dark:bg-slate-950/80">
       {editing ? (
         <div className="space-y-1.5">
           <input
             value={draft.name}
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="服务名称"
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
           />
           <input
             value={draft.url}
             onChange={e => setDraft(d => ({ ...d, url: e.target.value }))}
             placeholder="服务 URL"
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
           />
           <input
             value={draft.description ?? ''}
             onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
             placeholder="描述（可选）"
-            className="w-full text-xs bg-white dark:bg-slate-700 text-gray-400 dark:text-slate-400 rounded px-2 py-1 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-400 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-400 dark:focus:border-cyan-300/30"
           />
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-400 cursor-pointer">
-              <input type="checkbox" checked={draft.enabled} onChange={e => setDraft(d => ({ ...d, enabled: e.target.checked }))} className="accent-indigo-600" />
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <input type="checkbox" checked={draft.enabled} onChange={e => setDraft(d => ({ ...d, enabled: e.target.checked }))} className="accent-cyan-400" />
               启用
             </label>
           </div>
           <div className="flex gap-1.5">
-            <button onClick={() => { setEditing(false); setDraft(server); }} className="flex-1 text-xs py-1 rounded bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">取消</button>
-            <button onClick={save} className="flex-1 text-xs py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors">保存</button>
+            <button onClick={() => { setEditing(false); setDraft(server); }} className="flex-1 rounded bg-slate-800 py-1 text-xs text-slate-300 transition-colors hover:bg-slate-700">取消</button>
+            <button onClick={save} className="flex-1 rounded bg-cyan-500 py-1 text-xs text-slate-950 transition-colors hover:bg-cyan-400">保存</button>
           </div>
         </div>
       ) : (
         <div className="flex items-start gap-2">
           <div className={cn('w-1.5 h-1.5 rounded-full mt-1 shrink-0', server.enabled ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-slate-600')} />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-gray-700 dark:text-slate-300">{server.name}</div>
-            <div className="text-[10px] text-blue-400 dark:text-blue-500 truncate mt-0.5">{server.url}</div>
-            {server.description && <div className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{server.description}</div>}
-            {server.source && <div className="text-[9px] text-blue-400 dark:text-blue-500 truncate mt-0.5">{server.source}</div>}
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-200">{server.name}</div>
+            <div className="mt-0.5 truncate text-[10px] text-sky-500 dark:text-sky-400">{server.url}</div>
+            {server.description && <div className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">{server.description}</div>}
+            {server.source && <div className="mt-0.5 truncate text-[9px] text-sky-500 dark:text-sky-400">{server.source}</div>}
           </div>
-          <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors shrink-0">
+          <button onClick={() => setEditing(true)} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200">
             <Edit2 size={10} />
           </button>
-          <button onClick={onDelete} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-400 hover:text-red-500 transition-colors shrink-0">
+          <button onClick={onDelete} className="shrink-0 rounded p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/15 dark:hover:text-red-300">
             <Trash2 size={10} />
           </button>
         </div>
@@ -342,30 +350,30 @@ function AddConfigDialog({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-xl bg-white dark:bg-[#161b22] border border-gray-200 dark:border-slate-700 shadow-xl">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
-          <div className="text-sm font-semibold text-gray-800 dark:text-slate-200">{title}</div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200/40 p-4 backdrop-blur-sm dark:bg-slate-950/55">
+      <div className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-[28px] border border-slate-200 bg-white/95 shadow-[0_24px_80px_rgba(148,163,184,0.18)] dark:border-cyan-400/14 dark:bg-slate-950/95 dark:shadow-[0_24px_80px_rgba(2,6,23,0.55)]">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-cyan-400/12">
+          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100" data-ui-heading="true">{title}</div>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-100">
             <X size={14} />
           </button>
         </div>
 
-        <div className="p-4 space-y-5">
-          <section className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">手工添加</div>
+        <div className="space-y-6 p-5">
+          <section className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">手工添加</div>
             <input
               value={manualName}
               onChange={e => setManualName(e.target.value)}
               placeholder={manualNameLabel}
-              className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1.5 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
             />
             <textarea
               value={manualPrompt}
               onChange={e => setManualPrompt(e.target.value)}
               placeholder={manualPromptLabel}
               rows={4}
-              className="w-full text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1.5 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400 resize-none"
+        className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-cyan-300/30"
             />
             <button
               onClick={() => {
@@ -374,51 +382,51 @@ function AddConfigDialog({
                 setManualName('');
                 setManualPrompt('');
               }}
-              className="text-xs px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+              className="rounded-xl border border-sky-200 bg-[linear-gradient(135deg,rgba(96,165,250,0.94),rgba(129,140,248,0.9))] px-4 py-2 text-xs text-white transition-all hover:-translate-y-px hover:brightness-105 dark:border-cyan-300/20 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.98),rgba(99,102,241,0.96))] dark:hover:brightness-110"
             >
               添加
             </button>
           </section>
 
-          <section className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">通过 Git URL 导入</div>
-            <div className="text-[10px] text-gray-400 dark:text-slate-500">{gitHint}</div>
+          <section className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">通过 Git URL 导入</div>
+            <div className="text-[10px] text-slate-500">{gitHint}</div>
             <div className="flex gap-2">
               <input
                 value={sourceUrl}
                 onChange={e => setSourceUrl(e.target.value)}
                 placeholder="https://...git"
-                className="flex-1 text-xs bg-white dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1.5 outline-none border border-gray-200 dark:border-slate-600 focus:border-indigo-400"
+                className="flex-1 rounded-2xl border border-cyan-400/14 bg-slate-950 px-3 py-2 text-xs text-slate-200 outline-none focus:border-cyan-300/30"
               />
               <button
                 onClick={onScan}
                 disabled={!sourceUrl.trim()}
-                className="text-xs px-3 py-1.5 rounded bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 text-gray-700 dark:text-slate-200 transition-colors"
+                className="rounded-xl bg-slate-100 px-4 py-2 text-xs text-slate-700 transition-colors hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 扫描
               </button>
             </div>
 
             {installableItems.length > 0 && (
-              <div className="space-y-2 border border-gray-200 dark:border-slate-700 rounded-lg p-2.5">
+              <div className="space-y-2 rounded-[24px] border border-slate-200 p-3 dark:border-cyan-400/14">
                 {installableItems.map(item => (
-                  <label key={item.name} className="flex items-start gap-2 cursor-pointer">
+                  <label key={item.name} className="flex cursor-pointer items-start gap-2 rounded-2xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-900">
                     <input
                       type="checkbox"
                       checked={item.selected}
                       onChange={e => setInstallableItems(installableItems.map(s => s.name === item.name ? { ...s, selected: e.target.checked } : s))}
-                      className="mt-0.5 accent-indigo-600"
+                      className="mt-0.5 accent-cyan-400"
                     />
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-gray-700 dark:text-slate-300">{item.name}</div>
-                      <div className="text-[10px] text-gray-400 dark:text-slate-500 line-clamp-2">{item.desc || item.prompt}</div>
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{item.name}</div>
+                      <div className="line-clamp-2 text-[10px] text-slate-400 dark:text-slate-500">{item.desc || item.prompt}</div>
                     </div>
                   </label>
                 ))}
                 <button
                   onClick={onInstallSelected}
                   disabled={selectedCount === 0}
-                  className="text-xs px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition-colors"
+                  className="rounded-xl border border-sky-200 bg-[linear-gradient(135deg,rgba(96,165,250,0.94),rgba(129,140,248,0.9))] px-4 py-2 text-xs text-white transition-all hover:-translate-y-px hover:brightness-105 disabled:opacity-50 dark:border-cyan-300/20 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.98),rgba(99,102,241,0.96))] dark:hover:brightness-110"
                 >
                   安装所选({selectedCount})
                 </button>
@@ -433,7 +441,7 @@ function AddConfigDialog({
 
 export function SettingsPanel({ onClose }: Props) {
   const {
-    theme, toggleTheme,
+    theme, toggleTheme, fontScale, setFontScale,
     agentModes, setAgentModes, activeMode, setActiveMode,
     slashCommands, setSlashCommands,
     skills, setSkills,
@@ -516,28 +524,28 @@ export function SettingsPanel({ onClose }: Props) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#161b22]">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700 shrink-0">
-        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">设置</span>
+    <div className="flex h-full flex-col bg-transparent px-3 py-3">
+      <div className="flex shrink-0 items-center justify-between rounded-[24px] border border-slate-200 bg-white/88 px-4 py-3 shadow-[0_18px_40px_rgba(148,163,184,0.14)] dark:border-cyan-400/14 dark:bg-slate-950/88 dark:shadow-[0_18px_40px_rgba(2,6,23,0.28)]">
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100" data-ui-heading="true">设置</span>
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-100"
         >
           <X size={14} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="mt-3 flex-1 space-y-5 overflow-y-auto rounded-[24px] border border-slate-200 bg-white/72 p-4 shadow-[0_18px_40px_rgba(148,163,184,0.14)] dark:border-cyan-400/14 dark:bg-slate-950/74 dark:shadow-[0_18px_40px_rgba(2,6,23,0.28)]">
         <section>
-          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 mb-3">主题</div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">主题</div>
           <div className="flex gap-2">
             <button
               onClick={() => theme === 'dark' && toggleTheme()}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-medium transition-colors',
-                theme === 'light'
-                  ? 'bg-white border-indigo-400 text-indigo-700 shadow-sm'
-                  : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-gray-300'
+                'flex flex-1 items-center justify-center gap-2 rounded-2xl border py-3 text-xs font-medium transition-colors',
+                 theme === 'light'
+                   ? 'border-sky-200 bg-sky-50 text-sky-700 shadow-sm dark:border-cyan-300/26 dark:bg-slate-900 dark:text-cyan-200'
+                   : 'border-slate-200 bg-white text-slate-500 hover:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-500 dark:hover:border-cyan-300/24'
               )}
             >
               <Sun size={13} />亮色
@@ -545,14 +553,35 @@ export function SettingsPanel({ onClose }: Props) {
             <button
               onClick={() => theme === 'light' && toggleTheme()}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-medium transition-colors',
-                theme === 'dark'
-                  ? 'bg-slate-700 border-indigo-400 text-indigo-300 shadow-sm'
-                  : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-gray-300'
+                'flex flex-1 items-center justify-center gap-2 rounded-2xl border py-3 text-xs font-medium transition-colors',
+                 theme === 'dark'
+                   ? 'border-cyan-300/26 bg-slate-900 text-cyan-200 shadow-sm'
+                   : 'border-slate-200 bg-white text-slate-500 hover:border-sky-200 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-500 dark:hover:border-cyan-300/24'
               )}
             >
               <Moon size={13} />暗色
             </button>
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">字体大小</div>
+          <div className="grid grid-cols-3 gap-2">
+            {FONT_SCALE_OPTIONS.map(option => (
+              <button
+                key={option.id}
+                onClick={() => setFontScale(option.id)}
+                className={cn(
+                  'rounded-2xl border px-3 py-3 text-left transition-colors',
+                  fontScale === option.id
+                    ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-cyan-300/26 dark:bg-slate-900 dark:text-cyan-200'
+                    : 'border-slate-200 bg-white text-slate-400 hover:border-sky-200 hover:text-slate-700 dark:border-cyan-400/14 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-cyan-300/24 dark:hover:text-slate-200'
+                )}
+              >
+                <div className="text-xs font-semibold">{option.label}</div>
+                <div className="mt-1 text-[10px] text-slate-500">{option.desc}</div>
+              </button>
+            ))}
           </div>
         </section>
 
@@ -570,7 +599,7 @@ export function SettingsPanel({ onClose }: Props) {
                   onSave={updated => void saveMode(updated)}
                 />
               ))}
-              {agentModes.length === 0 && <div className="text-xs text-gray-400 dark:text-slate-500 py-2">暂无模式</div>}
+               {agentModes.length === 0 && <div className="py-2 text-xs text-slate-500">暂无模式</div>}
             </div>
           )}
         </section>
@@ -587,7 +616,7 @@ export function SettingsPanel({ onClose }: Props) {
                   onSave={updated => void saveCmd(updated)}
                 />
               ))}
-              {slashCommands.length === 0 && <div className="text-xs text-gray-400 dark:text-slate-500 py-2">暂无命令</div>}
+               {slashCommands.length === 0 && <div className="py-2 text-xs text-slate-500">暂无命令</div>}
             </div>
           )}
         </section>
@@ -604,7 +633,7 @@ export function SettingsPanel({ onClose }: Props) {
                   onSave={updated => void saveSkill(updated)}
                 />
               ))}
-              {skills.length === 0 && <div className="text-xs text-gray-400 dark:text-slate-500 py-2">暂无技能</div>}
+               {skills.length === 0 && <div className="py-2 text-xs text-slate-500">暂无技能</div>}
             </div>
           )}
         </section>
@@ -621,7 +650,7 @@ export function SettingsPanel({ onClose }: Props) {
                   onSave={updated => void saveMcp(updated)}
                 />
               ))}
-              {mcpServers.length === 0 && <div className="text-xs text-gray-400 dark:text-slate-500 py-2">暂无 MCP 服务</div>}
+               {mcpServers.length === 0 && <div className="py-2 text-xs text-slate-500">暂无 MCP 服务</div>}
             </div>
           )}
         </section>

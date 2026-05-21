@@ -5,7 +5,11 @@ import { useAppStore } from '../store/AppContext';
 import { cn } from '../lib/utils';
 import type { Session } from '../api/types';
 
-export function SessionSidebar() {
+interface Props {
+  onSessionSelected?: () => void;
+}
+
+export function SessionSidebar({ onSessionSelected }: Props) {
   const { activeProject, sessions, activeSession, setSessions, setActiveSession } = useAppStore();
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -29,6 +33,7 @@ export function SessionSidebar() {
       const s = await sessionsApi.create(activeProject.id, { name: newName.trim() });
       setSessions(prev => [s, ...prev]);
       setActiveSession(s);
+      onSessionSelected?.();
     } catch {}
     setNewName('');
     setCreating(false);
@@ -84,75 +89,78 @@ export function SessionSidebar() {
   return (
     <>
       <div
-        className="flex flex-col bg-gray-50 dark:bg-[#161b22] border-r border-gray-200 dark:border-slate-800 shrink-0 relative"
+        className="relative flex flex-col border-r border-rose-100/80 bg-white/55 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/65 shrink-0"
         style={{ width }}
       >
-        <div className="flex items-center justify-between px-3 py-3 border-b border-gray-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-slate-300">
+        <div className="flex items-center justify-between border-b border-rose-100/80 px-4 py-4 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
             <MessageSquare size={14} />
             <span>Sessions</span>
           </div>
           {activeProject && (
             <button
               onClick={() => setCreating(true)}
-              className="w-6 h-6 rounded flex items-center justify-center bg-gray-200 dark:bg-slate-700 hover:bg-indigo-600 text-gray-500 dark:text-slate-400 hover:text-white transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-2xl border border-rose-100 bg-white text-slate-500 shadow-sm transition-all hover:-translate-y-px hover:bg-rose-50 hover:text-rose-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
               title="New session"
             >
-              <Plus size={13} />
+              <Plus size={15} />
             </button>
           )}
         </div>
 
         {!activeProject && (
-          <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-slate-600 text-xs px-4 text-center">
+          <div className="flex flex-1 items-center justify-center px-5 text-center text-sm text-slate-400 dark:text-slate-500">
             Select a project to view sessions
           </div>
         )}
 
         {activeProject && (
-          <div className="flex-1 overflow-y-auto py-1">
+          <div className="flex-1 overflow-y-auto px-2 py-3">
             {creating && (
-              <div className="px-2 py-1">
+              <div className="px-1 py-1">
                 <input
                   autoFocus
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') setCreating(false); }}
                   onBlur={() => { if (!newName) setCreating(false); }}
-                  className="w-full text-xs bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-white rounded px-2 py-1 outline-none border border-indigo-400"
+                  className="w-full rounded-2xl border border-rose-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-rose-300 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                   placeholder="Session name"
                 />
               </div>
             )}
 
             {sessions.length === 0 && !creating && (
-              <div className="text-gray-400 dark:text-slate-600 text-xs text-center mt-8">No sessions yet</div>
+              <div className="mt-10 text-center text-sm text-slate-400 dark:text-slate-500">No sessions yet</div>
             )}
 
             {sessions.map(s => (
               <div
                 key={s.id}
-                onClick={() => setActiveSession(s)}
+                onClick={() => {
+                  setActiveSession(s);
+                  onSessionSelected?.();
+                }}
                 className={cn(
-                  'group flex items-start gap-2 px-3 py-2 cursor-pointer rounded-md mx-1 my-0.5 transition-colors',
+                  'group mx-1 my-1 flex cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 transition-all',
                   activeSession?.id === s.id
-                    ? 'bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-white'
-                    : 'text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-800 dark:hover:text-slate-200'
+                    ? 'bg-white text-rose-700 shadow-[0_10px_30px_rgba(244,114,182,0.12)] ring-1 ring-rose-100 dark:bg-slate-900 dark:text-white dark:ring-slate-700'
+                    : 'text-slate-600 hover:bg-white/80 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200'
                 )}
               >
-                <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', statusColor(s.status))} />
+                <div className={cn('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', statusColor(s.status))} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium truncate">{s.name}</div>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                  <div className="truncate text-sm font-medium">{s.name}</div>
+                  <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
                     <Clock size={9} />
                     <span>{new Date(s.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <button
                   onClick={e => handleDelete(e, s)}
-                  className="hidden group-hover:flex items-center justify-center w-5 h-5 rounded hover:bg-red-50 dark:hover:bg-red-500/20 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  className="hidden h-7 w-7 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-500 dark:hover:bg-red-500/20 dark:hover:text-red-400 group-hover:flex"
                 >
-                  <Trash2 size={11} />
+                  <Trash2 size={12} />
                 </button>
               </div>
             ))}
@@ -160,15 +168,15 @@ export function SessionSidebar() {
         )}
 
         {activeProject && (
-          <div className="border-t border-gray-200 dark:border-slate-800">
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-[10px] text-gray-400 dark:text-slate-500">
+          <div className="border-t border-rose-100/80 px-4 py-3 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">
                 {sessions.length} session{sessions.length !== 1 ? 's' : ''}
               </span>
               {sessions.length > 0 && (
                 <button
                   onClick={() => setConfirmClearOpen(true)}
-                  className="text-[10px] text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400 flex items-center gap-1 transition-colors"
+                  className="flex items-center gap-1 text-[11px] text-red-400 transition-colors hover:text-red-500 dark:text-red-500 dark:hover:text-red-400"
                   title="Clear all sessions"
                 >
                   <Trash2 size={10} />
@@ -176,7 +184,7 @@ export function SessionSidebar() {
                 </button>
               )}
             </div>
-            <div className="px-3 pb-2 text-[10px] text-gray-400 dark:text-slate-600 truncate">
+            <div className="truncate pt-3 text-[11px] text-slate-400 dark:text-slate-500">
               {activeProject.name}
               {activeProject.rootPath && <div className="truncate opacity-60">{activeProject.rootPath}</div>}
             </div>
@@ -186,36 +194,36 @@ export function SessionSidebar() {
         {/* Resize handle */}
         <div
           onMouseDown={onMouseDown}
-          className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-400/50 transition-colors z-10"
+          className="absolute right-0 top-0 z-10 h-full w-1 cursor-col-resize transition-colors hover:bg-rose-300/70 dark:hover:bg-indigo-400/50"
         />
       </div>
 
       {/* Confirm clear dialog */}
       {confirmClearOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmClearOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm" onClick={() => setConfirmClearOpen(false)}>
           <div
-            className="bg-white dark:bg-[#161b22] rounded-xl shadow-2xl w-80 border border-gray-200 dark:border-slate-700 p-5"
+            className="w-full max-w-sm rounded-[28px] border border-rose-100 bg-white/95 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                 <AlertTriangle size={18} className="text-red-500" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-gray-800 dark:text-slate-200">Clear all sessions?</div>
-                <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">This will delete all {sessions.length} sessions and their messages.</div>
+                <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Clear all sessions?</div>
+                <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">This will delete all {sessions.length} sessions and their messages.</div>
               </div>
             </div>
             <div className="flex gap-2 justify-end mt-4">
               <button
                 onClick={() => setConfirmClearOpen(false)}
-                className="px-3 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                className="rounded-xl bg-rose-50 px-4 py-2 text-xs text-slate-600 transition-colors hover:bg-rose-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handleClearAll}
-                className="px-3 py-1.5 text-xs rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+                className="rounded-xl bg-red-500 px-4 py-2 text-xs text-white transition-colors hover:bg-red-600"
               >
                 Delete all
               </button>
@@ -226,4 +234,3 @@ export function SessionSidebar() {
     </>
   );
 }
-
